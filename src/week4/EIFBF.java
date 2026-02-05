@@ -4,46 +4,98 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.InputMismatchException;
 import java.util.List;
-import java.util.Map;
 
-public class EIFOLTR2 {
+public class EIFBF {
 
-    static StringBuffer sb = new StringBuffer();
+    static StringBuilder sb = new StringBuilder();
+    static int male;
+    static int female;
+
     public static void main(String[] args) throws IOException {
         InputReader rd = new InputReader(System.in);
-        Map<String,Vertex> graph = new HashMap<>();
+
         int n = rd.nextInt();
-        for (int i = 0; i < n-1; i++) {
+        int m = rd.nextInt();
 
-            String u = rd.next();
-            String v = rd.next();
+        Vertex[] graph = new Vertex[n + 1];
 
-            if(graph.get(u) == null){
-                Vertex uu = new Vertex(u);
-                graph.put(u, uu);
+        for (int i = 1; i <= n; i++) {
+            graph[i] = new Vertex(i);
+            graph[i].gender = rd.next();
+        }
+
+        for (int i = 0; i < m; i++) {
+            int u = rd.nextInt();
+            int v = rd.nextInt();
+            graph[u].adjVertexs.add(graph[v]);
+            graph[v].adjVertexs.add(graph[u]);
+        }
+
+        List<Cal> friendList = new ArrayList<>();
+
+        for (int i = n; i > 0; i--) {
+            if(!graph[i].visited) {
+                dfs(graph[i]);
+                Cal c = new Cal(i, male, female);
+                friendList.add(c);
+                male =0;
+                female = 0;
             }
-            if(graph.get(v) == null){
-                Vertex vv = new Vertex(v);
-                graph.put(v, vv);
-            }
+        }
 
-            graph.get(u).adjecentVertex.add(graph.get(v));
-            graph.get(v).adjecentVertex.add(graph.get(u));
+        friendList.sort((a,b) -> Integer.compare(a.id, b.id));
+
+        for (Cal cal : friendList) {
+            sb.append(cal.id).append(" ").append(cal.calMale).append(" ").append(cal.calFemale).append("\n");
+        }
+
+        System.out.println(sb);
+    }
+
+    static class Cal {
+        int id;
+        int calMale;
+        int calFemale;
+
+        public Cal(int id, int calMale, int calFemale) {
+            this.id = id;
+            this.calMale = calMale;
+            this.calFemale = calFemale;
         }
 
     }
 
-    static class Vertex{
-        String name;
-        boolean visited;
-        List<Vertex> adjecentVertex = new ArrayList<>();
+    static void dfs(Vertex v) {
+        v.visited = true;
+        if (v.gender.equals("Nam")) {
+            male++;
+        } else
+            female++;
 
-        public Vertex(String name){
-            this.name = name;
+        for (Vertex adjVertex : v.adjVertexs) {
+            if (!adjVertex.visited) {
+                dfs(adjVertex);
+            }
         }
+
+    }
+
+    static class Vertex {
+        int id;
+        List<Vertex> adjVertexs = new ArrayList<>();
+        boolean visited;
+        String gender;
+
+        public Vertex(int id) {
+            this.id = id;
+        }
+
+        public void addAdj(Vertex v) {
+            this.adjVertexs.add(v);
+        }
+
     }
 
     static class InputReader {
@@ -173,4 +225,5 @@ public class EIFOLTR2 {
             }
         }
     }
+
 }
