@@ -8,31 +8,32 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.TreeSet;
 
 public class PPMYK {
 
-    static HashMap<Integer, TreeSet<Vertex>> distinctMap = new HashMap<>();
+    static Map<Integer, TreeSet<Vertex>> distanceMap = new HashMap<>();
 
     public static void main(String[] args) throws IOException {
         InputReader rd = new InputReader(System.in);
-        StringBuilder sb = new StringBuilder();
+        StringBuffer sb = new StringBuffer();
 
         int n = rd.nextInt();
         int m = rd.nextInt();
 
         Vertex[] graph = new Vertex[n];
 
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < graph.length; i++) {
             graph[i] = new Vertex(i);
         }
 
         for (int i = 0; i < m; i++) {
             int u = rd.nextInt();
             int v = rd.nextInt();
-            graph[u].adjVertexs.add(graph[v]);
-            graph[v].adjVertexs.add(graph[u]);
+            graph[u].addAdj(graph[v]);
+            graph[v].addAdj(graph[u]);
         }
 
         int u = rd.nextInt();
@@ -41,50 +42,49 @@ public class PPMYK {
         bfs(graph[u]);
 
         for (int i = 0; i < q; i++) {
-            int distinct = rd.nextInt();
+            int level = rd.nextInt();
 
-            if (distinctMap.get(distinct) == null) {
-                sb.append("-1");
-            } else {
-                for (Vertex vertex : distinctMap.get(distinct)) {
+            
+
+            if(distanceMap.get(level) == null) 
+                sb.append(-1);
+            else {
+                for (Vertex vertex : distanceMap.get(level)) {
                     sb.append(vertex.id).append(" ");
                 }
             }
             sb.append("\n");
         }
-
         System.out.println(sb);
-
     }
 
     static void bfs(Vertex v) {
-
         Queue<Vertex> queue = new ArrayDeque<>();
-
         v.visited = true;
-        v.distinct = 0;
+        v.level = 0;
         queue.add(v);
 
-        TreeSet<Vertex> distinctFirst = distinctMap.get(0);
-        if (distinctFirst == null) {
-            distinctFirst = new TreeSet<>((a,b) -> Integer.compare(a.id, b.id));
-            distinctMap.put(0, distinctFirst);
+        TreeSet<Vertex> distanceHead = distanceMap.get(0);
+        if (distanceHead == null) {
+            distanceHead = new TreeSet<>((a, b) -> Integer.compare(a.id, b.id));
+            distanceMap.put(0, distanceHead);
         }
-        distinctFirst.add(v);
+        distanceHead.add(v);
 
         while (!queue.isEmpty()) {
             Vertex curr = queue.poll();
             for (Vertex adjVertex : curr.adjVertexs) {
                 if (!adjVertex.visited) {
                     adjVertex.visited = true;
-                    adjVertex.distinct = curr.distinct + 1;
+                    adjVertex.level = curr.level + 1;
 
-                    TreeSet<Vertex> distinctBody = distinctMap.get(adjVertex.distinct);
-                    if (distinctBody == null) {
-                        distinctBody = new TreeSet<>((a,b) -> Integer.compare(a.id, b.id));
-                        distinctMap.put(adjVertex.distinct, distinctBody);
+                    TreeSet<Vertex> distanceBody = distanceMap.get(adjVertex.level);
+                    if (distanceBody == null) {
+                        distanceBody = new TreeSet<>((a, b) -> Integer.compare(a.id, b.id));
+                        distanceMap.put(adjVertex.level, distanceBody);
                     }
-                    distinctBody.add(adjVertex);
+                    distanceBody.add(adjVertex);
+
                     queue.add(adjVertex);
                 }
             }
@@ -96,10 +96,14 @@ public class PPMYK {
         int id;
         List<Vertex> adjVertexs = new ArrayList<>();
         boolean visited;
-        int distinct;
+        int level;
 
         public Vertex(int id) {
             this.id = id;
+        }
+
+        public void addAdj(Vertex v) {
+            this.adjVertexs.add(v);
         }
 
     }
