@@ -1,93 +1,115 @@
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.InputMismatchException;
-import java.util.List;
+package week6;
 
-public class EIUWBT {
+import java.io.*;
+import java.util.*;
 
-    static long totalW = 0;
-    static int bestRoot = -1;
-    static long bestDiff = Long.MAX_VALUE;
+class EILOCAL {
+    static InputReader sc;
+    static StringBuilder sb = new StringBuilder();
 
     public static void main(String[] args) throws IOException {
-        InputReader rd = new InputReader(System.in);
-        StringBuilder sb = new StringBuilder();
-        
-        int n = rd.nextInt();
-        Vertex[] vertices = new Vertex[n + 1];
-        for (int i = 1; i <= n; i++) {
-            vertices[i] = new Vertex(i, rd.nextLong());
-            totalW += vertices[i].weight;
-
+        sc = new InputReader(System.in);
+        int n = sc.nextInt();
+        List<Node> nodeList = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            nodeList.add(new Node(i));
         }
-        for (int i = 1; i < n; i++) {
-            int a = rd.nextInt();
-            int b = rd.nextInt();
+        for (int i = 0; i < n - 1; i++) {
+            int u = sc.nextInt();
+            int v = sc.nextInt();
+            int distance = sc.nextInt();
 
-            vertices[a].addAdj(vertices[b]);
-            vertices[b].addAdj(vertices[a]);
+            nodeList.get(u).addNeighbor(nodeList.get(v));
+            nodeList.get(v).addNeighbor(nodeList.get(u));
+
+            nodeList.get(u).distanceMap.put(v, distance);
+            nodeList.get(v).distanceMap.put(u, distance);
         }
-
-        dfs(vertices[1]);
-
-        if (bestDiff == Long.MAX_VALUE) {
-            System.out.println("-1");
-
-        } else {
-            long minB = Math.min(vertices[bestRoot].leftSum, (vertices[bestRoot].rightSum));
-            long maxB = Math.max(vertices[bestRoot].leftSum, vertices[bestRoot].rightSum);
-            System.out.println(bestRoot + " " + minB + " " + maxB);
-        }
-
-    }
-
-     static class Vertex {
-        int id;
-        List<Vertex> adj = new ArrayList<>();
-        long weight;
-        boolean visited = false;
-        long leftSum;
-        long rightSum;
-        long totalWeight;
-
-        public Vertex(int id, long weight) {
-            this.id = id;
-            this.weight = weight;
-        }
-
-        public void addAdj(Vertex v) {
-            this.adj.add(v);
-        }
-
-        public long different() {
-            return Math.abs(leftSum - rightSum);
-        }
-    }
-
-    static void dfs(Vertex v) {
-        v.totalWeight = v.weight;
-        v.visited = true;
-        for (Vertex x : v.adj) {
-            if (!x.visited) {
-                dfs(x);
-                v.totalWeight += x.totalWeight;
-                if (v.adj.size() == 2) {
-                    v.leftSum = x.totalWeight;
-                    v.rightSum = totalW - v.leftSum - v.weight;
-
-                    long currDif = Math.abs(v.leftSum - v.rightSum);
-
-                    if (currDif < bestDiff || (currDif == bestDiff && v.id < bestRoot)) {
-                        bestDiff = currDif;
-                        bestRoot = v.id;
-                    }
-                }
+        Node start = nodeList.get(0);
+        for (Node w : nodeList) {
+            if (w.id == 0) {
+                start = w;
+                break;
             }
         }
-
+        findSolution(start);
+        int max = -1;
+        int id = 0;
+        for (Node node : nodeList) {
+            if (max < node.distance) {
+                max = node.distance;
+                id = node.id;
+            }
+        }
+        for (Node i : nodeList) {
+            i.distance = 0;
+            i.isVisited = false;
+        }
+        findSolution1(nodeList.get(id));
+        int max1 = -1;
+        int id2 = -1;
+        Node end = null;
+        for (Node node : nodeList) {
+            if (max1 < node.distance) {
+                max1 = node.distance;
+                end = node;
+                id2 = node.id;
+            }
+        }
+        if (id2 < id)
+            id = id2;
+        if (end != null) {
+            System.out.println(id + " " + end.distance);
+        }
     }
+
+    public static void findSolution(Node start) {
+        start.isVisited = true;
+        for (Node child : start.nodeList) {
+            if (!child.isVisited) {
+                child.distance = start.distanceMap.get(child.id);
+                if (child.distance <= start.distance + child.distance) {
+                    child.distance += start.distance;
+                }
+                findSolution(child);
+            }
+        }
+    }
+
+    public static void findSolution1(Node start) {
+        start.isVisited = true;
+        for (Node child : start.nodeList) {
+            if (!child.isVisited) {
+                child.distance = start.distanceMap.get(child.id);
+                if (child.distance <= start.distance + child.distance) {
+                    child.distance += start.distance;
+                }
+                findSolution(child);
+            }
+        }
+    }
+
+    static class Node {
+        int id;
+        boolean isVisited;
+        int distance;
+        List<Node> nodeList;
+
+        HashMap<Integer, Integer> distanceMap;
+
+        public Node(int id) {
+            this.id = id;
+            this.distance = 0;
+            this.nodeList = new ArrayList<>();
+            this.distanceMap = new HashMap<>();
+            this.isVisited = false;
+        }
+
+        public void addNeighbor(Node node) {
+            this.nodeList.add(node);
+        }
+    }
+
     static class InputReader {
         private byte[] inbuf = new byte[2 << 23];
         public int lenbuf = 0, ptrbuf = 0;
@@ -217,3 +239,7 @@ public class EIUWBT {
     }
 
 }
+
+
+
+

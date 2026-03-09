@@ -2,40 +2,96 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Map;
 
 public class EIUSEFI2 {
 
+    static InputReader rd;
+    static StringBuilder sb = new StringBuilder();
+    static List<File> fileList = new ArrayList<>();
+
     public static void main(String[] args) throws IOException {
-        InputReader rd = new InputReader(System.in);
-        StringBuilder sb = new StringBuilder();
-
+        rd = new InputReader(System.in);
         int n = rd.nextInt();
-
-        Vertex graph[] = new Vertex[n];
-
-        for (int i = 0; i < n; i++) {
-            graph[i] = new Vertex(i);
-        }
-
+        HashMap<String, File> mapFolder = new HashMap<>();
         for (int i = 0; i < n - 1; i++) {
-            String u = rd.next();
-            String v = rd.next();
-            
+            String parent = rd.next();
+            String children = rd.next();
+            if (!mapFolder.containsKey(parent)) {
+                mapFolder.put(parent, new File(parent));
+            }
+            if (!mapFolder.containsKey(children)) {
+                mapFolder.put(children, new File(children));
+            }
+            mapFolder.get(parent).addChildren(mapFolder.get(children));
+            mapFolder.get(children).addChildren(mapFolder.get(parent));
+        }
+        mapFolder.get(rd.next()).isRoot = true;
+        for (Map.Entry<String, File> e : mapFolder.entrySet()) {
+            fileList.add(e.getValue());
+        }
+        for (File f : fileList) {
+            f.childFile.sort(Comparator.comparing(o -> o.name));
+        }
+        String fileName = rd.next();
+        for (Map.Entry<String, File> e : mapFolder.entrySet()) {
+            if (e.getValue().childFile.size() > 1) {
+                e.getValue().isFolder = true;
+            }
+        }
+        for (Map.Entry<String, File> e : mapFolder.entrySet()) {
+            if (e.getValue().isRoot) {
+                dfs(e.getValue(), fileName);
+                break;
+            }
         }
 
         System.out.println(sb);
+
     }
 
-    static class Vertex {
-        int id;
-        String name;
-        List<Vertex> adjVertexs = new ArrayList<>();
-        boolean visited;
+    static void dfs(File start, String key) {
+        start.isVisited = true;
 
-        public Vertex(int id) {
-            this.id = id;
+        for (File s : start.childFile) {
+            if (!s.isVisited) {
+                if (s.isFolder) {
+                    dfs(s, key);
+                    start.count += s.count;
+                } else {
+                    if (s.name.contains(key))
+                        start.count++;
+                }
+            }
+
+        }
+
+        if (start.count != 0)
+            sb.append(start.name).append(" ").append(start.count).append("\n");
+    }
+
+    static class File {
+        String name;
+        boolean isRoot;
+        boolean isVisited;
+        boolean isFolder;
+        int id;
+        int count;
+        List<File> childFile = new ArrayList<>();
+
+        public File(String name) {
+            this.name = name;
+            this.count = 0;
+            this.isVisited = false;
+            this.isFolder = false;
+        }
+
+        public void addChildren(File file) {
+            childFile.add(file);
         }
     }
 

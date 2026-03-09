@@ -1,93 +1,94 @@
+package week5;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Queue;
 
-public class EIUWBT {
-
-    static long totalW = 0;
-    static int bestRoot = -1;
-    static long bestDiff = Long.MAX_VALUE;
-
+public class EILOCAL2 {
     public static void main(String[] args) throws IOException {
         InputReader rd = new InputReader(System.in);
         StringBuilder sb = new StringBuilder();
-        
+
         int n = rd.nextInt();
-        Vertex[] vertices = new Vertex[n + 1];
-        for (int i = 1; i <= n; i++) {
-            vertices[i] = new Vertex(i, rd.nextLong());
-            totalW += vertices[i].weight;
 
-        }
-        for (int i = 1; i < n; i++) {
-            int a = rd.nextInt();
-            int b = rd.nextInt();
+        Vertex[] graph = new Vertex[n];
 
-            vertices[a].addAdj(vertices[b]);
-            vertices[b].addAdj(vertices[a]);
+        for (int i = 0; i < graph.length; i++) {
+            graph[i] = new Vertex(i);
         }
 
-        dfs(vertices[1]);
+        for (int i = 0; i < graph.length - 1; i++) {
+            int u = rd.nextInt();
+            int v = rd.nextInt();
+            int w = rd.nextInt();
 
-        if (bestDiff == Long.MAX_VALUE) {
-            System.out.println("-1");
-
-        } else {
-            long minB = Math.min(vertices[bestRoot].leftSum, (vertices[bestRoot].rightSum));
-            long maxB = Math.max(vertices[bestRoot].leftSum, vertices[bestRoot].rightSum);
-            System.out.println(bestRoot + " " + minB + " " + maxB);
+            graph[u].addEdge(w, graph[v]);
+            graph[v].addEdge(w, graph[u]);
         }
+
+        int maxDistance = bfs(graph[0]);
+
+        System.out.println(maxDistance);
+
+
 
     }
 
-     static class Vertex {
-        int id;
-        List<Vertex> adj = new ArrayList<>();
-        long weight;
-        boolean visited = false;
-        long leftSum;
-        long rightSum;
-        long totalWeight;
-
-        public Vertex(int id, long weight) {
-            this.id = id;
-            this.weight = weight;
-        }
-
-        public void addAdj(Vertex v) {
-            this.adj.add(v);
-        }
-
-        public long different() {
-            return Math.abs(leftSum - rightSum);
-        }
-    }
-
-    static void dfs(Vertex v) {
-        v.totalWeight = v.weight;
+    static int bfs(Vertex v) {
         v.visited = true;
-        for (Vertex x : v.adj) {
-            if (!x.visited) {
-                dfs(x);
-                v.totalWeight += x.totalWeight;
-                if (v.adj.size() == 2) {
-                    v.leftSum = x.totalWeight;
-                    v.rightSum = totalW - v.leftSum - v.weight;
+        v.distance = 0;
 
-                    long currDif = Math.abs(v.leftSum - v.rightSum);
+        int maxDistance = -1;
 
-                    if (currDif < bestDiff || (currDif == bestDiff && v.id < bestRoot)) {
-                        bestDiff = currDif;
-                        bestRoot = v.id;
-                    }
+        Queue<Vertex> queue = new ArrayDeque<>();
+        queue.add(v);
+
+        while (!queue.isEmpty()) {
+            Vertex curr = queue.poll();
+            for (Edge adjEdge : curr.edges) {
+                if (!adjEdge.endEdge.visited) {
+                    queue.add(adjEdge.endEdge);
+                    adjEdge.endEdge.visited = true;
+                    adjEdge.endEdge.distance = curr.distance + adjEdge.length;
+                    maxDistance = Math.max(maxDistance, adjEdge.endEdge.distance);
                 }
             }
         }
+        return maxDistance;
+    }
+
+    static class Vertex {
+        int id;
+        List<Edge> edges = new ArrayList<>();
+        int distance;
+        boolean visited;
+
+        public Vertex(int id) {
+            this.id = id;
+        }
+
+        public void addEdge(int length, Vertex endVertex) {
+            edges.add(new Edge(length, endVertex));
+        }
 
     }
+
+    static class Edge {
+        int length;
+        Vertex endEdge;
+
+        public Edge(int length, Vertex endEdge) {
+            this.length = length;
+            this.endEdge = endEdge;
+        }
+
+    }
+
     static class InputReader {
         private byte[] inbuf = new byte[2 << 23];
         public int lenbuf = 0, ptrbuf = 0;

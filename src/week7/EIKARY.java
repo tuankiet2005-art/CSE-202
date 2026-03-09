@@ -5,89 +5,59 @@ import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.List;
 
-public class EIUWBT {
+public class EIKARY {
 
-    static long totalW = 0;
-    static int bestRoot = -1;
-    static long bestDiff = Long.MAX_VALUE;
+    static StringBuilder sb = new StringBuilder();
 
     public static void main(String[] args) throws IOException {
-        InputReader rd = new InputReader(System.in);
-        StringBuilder sb = new StringBuilder();
-        
-        int n = rd.nextInt();
-        Vertex[] vertices = new Vertex[n + 1];
-        for (int i = 1; i <= n; i++) {
-            vertices[i] = new Vertex(i, rd.nextLong());
-            totalW += vertices[i].weight;
+        InputReader sc = new InputReader(System.in);
 
+        int n =sc.nextInt();
+        int m = sc.nextInt();
+        
+        Vertex[] vertices = new Vertex[n];
+        boolean flag = true;
+        for (int i = 0; i < n; i++) {
+            vertices[i] = new Vertex(i);
+        }
+        for (int i = 0; i < n - 1; i++) {
+            int u = sc.nextInt();
+            int v = sc.nextInt();
+            vertices[u].addNeighbor(vertices[v]);
+            vertices[v].addNeighbor(vertices[u]);
+        }
+        if (vertices[0].adjacentVertices.size() > m) {
+            System.out.println("No");
+            return;
         }
         for (int i = 1; i < n; i++) {
-            int a = rd.nextInt();
-            int b = rd.nextInt();
-
-            vertices[a].addAdj(vertices[b]);
-            vertices[b].addAdj(vertices[a]);
-        }
-
-        dfs(vertices[1]);
-
-        if (bestDiff == Long.MAX_VALUE) {
-            System.out.println("-1");
-
-        } else {
-            long minB = Math.min(vertices[bestRoot].leftSum, (vertices[bestRoot].rightSum));
-            long maxB = Math.max(vertices[bestRoot].leftSum, vertices[bestRoot].rightSum);
-            System.out.println(bestRoot + " " + minB + " " + maxB);
-        }
-
-    }
-
-     static class Vertex {
-        int id;
-        List<Vertex> adj = new ArrayList<>();
-        long weight;
-        boolean visited = false;
-        long leftSum;
-        long rightSum;
-        long totalWeight;
-
-        public Vertex(int id, long weight) {
-            this.id = id;
-            this.weight = weight;
-        }
-
-        public void addAdj(Vertex v) {
-            this.adj.add(v);
-        }
-
-        public long different() {
-            return Math.abs(leftSum - rightSum);
-        }
-    }
-
-    static void dfs(Vertex v) {
-        v.totalWeight = v.weight;
-        v.visited = true;
-        for (Vertex x : v.adj) {
-            if (!x.visited) {
-                dfs(x);
-                v.totalWeight += x.totalWeight;
-                if (v.adj.size() == 2) {
-                    v.leftSum = x.totalWeight;
-                    v.rightSum = totalW - v.leftSum - v.weight;
-
-                    long currDif = Math.abs(v.leftSum - v.rightSum);
-
-                    if (currDif < bestDiff || (currDif == bestDiff && v.id < bestRoot)) {
-                        bestDiff = currDif;
-                        bestRoot = v.id;
-                    }
-                }
+            if (vertices[i].adjacentVertices.size() - 1 > m) {
+                flag = false;
+                break;
             }
         }
+        if (flag) {
+            System.out.println("Yes");
+        } else {
+            System.out.println("No");
+        }
 
     }
+
+    static class Vertex {
+        int id;
+        boolean isVisited;
+        List<Vertex> adjacentVertices = new ArrayList<>();
+
+        public Vertex(int id) {
+            this.id = id;
+        }
+
+        public void addNeighbor(Vertex v) {
+            adjacentVertices.add(v);
+        }
+    }
+
     static class InputReader {
         private byte[] inbuf = new byte[2 << 23];
         public int lenbuf = 0, ptrbuf = 0;
@@ -215,5 +185,5 @@ public class EIUWBT {
             }
         }
     }
-
 }
+

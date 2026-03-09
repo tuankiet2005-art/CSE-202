@@ -1,93 +1,73 @@
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.InputMismatchException;
-import java.util.List;
+package week6;
 
-public class EIUWBT {
+import java.io.*;
+import java.util.*;
 
-    static long totalW = 0;
-    static int bestRoot = -1;
-    static long bestDiff = Long.MAX_VALUE;
+public class EIMAXHTR {
+    static InputReader sc;
+    static StringBuilder sb = new StringBuilder();
+    static int maxCurrentLevel = -1;
+    static int furthestVeertex = Integer.MAX_VALUE;
 
     public static void main(String[] args) throws IOException {
-        InputReader rd = new InputReader(System.in);
-        StringBuilder sb = new StringBuilder();
-        
-        int n = rd.nextInt();
-        Vertex[] vertices = new Vertex[n + 1];
-        for (int i = 1; i <= n; i++) {
-            vertices[i] = new Vertex(i, rd.nextLong());
-            totalW += vertices[i].weight;
+        sc = new InputReader(System.in);
+        int n = sc.nextInt();
+        Vertex[] graph = new Vertex[n];
+        for (int i = 0; i < n; i++) {
+            graph[i] = new Vertex(i);
+        }
+        for (int i = 0; i < n - 1; i++) {
+            int a = sc.nextInt();
+            int b = sc.nextInt();
+
+            graph[a].addAdj(graph[b]);
+            graph[b].addAdj(graph[a]);
 
         }
-        for (int i = 1; i < n; i++) {
-            int a = rd.nextInt();
-            int b = rd.nextInt();
-
-            vertices[a].addAdj(vertices[b]);
-            vertices[b].addAdj(vertices[a]);
-        }
-
-        dfs(vertices[1]);
-
-        if (bestDiff == Long.MAX_VALUE) {
-            System.out.println("-1");
-
-        } else {
-            long minB = Math.min(vertices[bestRoot].leftSum, (vertices[bestRoot].rightSum));
-            long maxB = Math.max(vertices[bestRoot].leftSum, vertices[bestRoot].rightSum);
-            System.out.println(bestRoot + " " + minB + " " + maxB);
-        }
+        dfs(graph[0], 0);
+        int furthestFrom0 = furthestVeertex;
+        reset(graph);
+        dfs(graph[furthestVeertex], 0);
+        System.out.println(Math.min(furthestFrom0, furthestVeertex) + " " + maxCurrentLevel);
 
     }
 
-     static class Vertex {
+    static void dfs(Vertex v, int level) {
+        v.visited = true;
+
+        if (level > maxCurrentLevel || (level == maxCurrentLevel && v.id < furthestVeertex)) {
+            maxCurrentLevel = level;
+            furthestVeertex = v.id;
+        }
+        for (Vertex x : v.adj) {
+            if (!x.visited) {
+                dfs(x, level + 1);
+            }
+        }
+    }
+
+    static class Vertex {
+
         int id;
         List<Vertex> adj = new ArrayList<>();
-        long weight;
         boolean visited = false;
-        long leftSum;
-        long rightSum;
-        long totalWeight;
 
-        public Vertex(int id, long weight) {
+        public Vertex(int id) {
             this.id = id;
-            this.weight = weight;
         }
 
         public void addAdj(Vertex v) {
             this.adj.add(v);
         }
-
-        public long different() {
-            return Math.abs(leftSum - rightSum);
-        }
     }
 
-    static void dfs(Vertex v) {
-        v.totalWeight = v.weight;
-        v.visited = true;
-        for (Vertex x : v.adj) {
-            if (!x.visited) {
-                dfs(x);
-                v.totalWeight += x.totalWeight;
-                if (v.adj.size() == 2) {
-                    v.leftSum = x.totalWeight;
-                    v.rightSum = totalW - v.leftSum - v.weight;
-
-                    long currDif = Math.abs(v.leftSum - v.rightSum);
-
-                    if (currDif < bestDiff || (currDif == bestDiff && v.id < bestRoot)) {
-                        bestDiff = currDif;
-                        bestRoot = v.id;
-                    }
-                }
-            }
+    static void reset(Vertex[] graphs) {
+        for (Vertex v : graphs) {
+            v.visited = false;
         }
-
+        maxCurrentLevel = -1;
     }
+
     static class InputReader {
         private byte[] inbuf = new byte[2 << 23];
         public int lenbuf = 0, ptrbuf = 0;
@@ -217,3 +197,4 @@ public class EIUWBT {
     }
 
 }
+
